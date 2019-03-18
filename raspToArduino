@@ -1,0 +1,50 @@
+#include <Servo.h> 
+ 
+Servo myservoX;  // create servo object to control a servo 
+Servo myservoY;
+ 
+String string = "";
+byte b;
+
+
+void setup() 
+{ 
+  Serial.begin(115200);
+  while(!Serial){;}
+  myservoX.attach(9);  // attaches the servo on pin 9 to the servo object 
+  myservoY.attach(10);
+}   
+ 
+
+void loop() 
+{ 
+  
+  while (Serial.available() >0){
+   
+ 
+    b = Serial.read();
+    string = string + char(b);
+    
+     
+    if(b == '\n'){
+      if(string[0] == 'x'){
+        
+        string = string.substring(1);
+        
+      
+        myservoX.write(string.toInt());
+        string = "";
+      }
+      else if(string[0] == 'y')
+      {
+        
+        string = string.substring(1);
+        myservoY.write(string.toInt());
+        string = "";
+       }
+    }
+  }
+  
+
+  
+} 
