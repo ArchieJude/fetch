@@ -1,0 +1,195 @@
+import serial
+ser = serial.Serial('/dev/ttyACM0', 115200)
+import sys
+import cv2 as cv
+
+
+import numpy as np
+
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib import pyplot as plt
+
+from picamera import PiCamera
+from picamera.array import PiRGBArray
+import time
+camera = PiCamera()
+
+
+
+
+
+width = 256
+height = 256
+
+camera.framerate = 60
+camera.resolution = (width,height)
+rawCapture = PiRGBArray(camera, size=(width,height))
+
+class image_analysis():
+
+    def __init__(self,image):
+        self.image = image
+        self.res = self.filter()
+        self.center = self.find()
+        self.vX = None
+        self.vY = None
+
+
+    
+    def find(self):
+        
+        npImg = np.asarray(self.res)
+
+
+        if len(np.argwhere(npImg > 0)) == 0:
+            return None
+
+        else:
+            return(np.mean(np.argwhere(npImg > 0), axis=0)[:2])
+        
+
+    def robotSee():
+        #shows what the robot sees
+
+        for frame in camera.capture_continuous(rawCapture, format='bgr', use_video_port = True):
+            image = frame.array
+            
+                
+            res = image_analysis.filter(image)
+
+
+            cv.imshow("frame",res)
+            key = cv.waitKey(1) & 0xFF
+            rawCapture.truncate(0)
+
+            if key == ord('q'):
+               
+         
+                cv.destroyAllWindows()
+                break
+
+
+
+        
+    def filter(self):
+
+        #this function filters out all the pixel values that are not in the range, and returns a filtered image.
+
+        
+   
+        hsv = cv.cvtColor(self.image, cv.COLOR_BGR2HSV)
+
+        #this range is good for now.
+        yellow_min = np.array([20,80,80], np.uint8)
+        yellow_max = np.array([100,200,200], np.uint8)
+
+        mask = cv.inRange(hsv, yellow_min,yellow_max)
+        res = cv.bitwise_and(self.image,self.image, mask = mask)
+
+            
+        return res
+
+ 
+    def findRatio():
+
+        camera.capture(rawCapture, format='bgr')
+        image = rawCapture.array
+        center1 = image_analysis.find(image)
+        
+        moveServoX(120)
+
+        time.sleep(2)
+        rawCapture.truncate()
+        rawCapture.seek(0)
+        camera.capture(rawCapture, format='bgr')
+        image = rawCapture.array
+
+        center2 = image_analysis.find(image)
+
+
+        print(abs(center1[1]-center2[1])/30)
+       
+
+def moveServoX(angle):
+    angle = "x"+str(angle)
+    ser.write(angle.encode())
+    ser.write("\n".encode())
+
+
+def moveServoY(angle):
+
+    angle = "y"+str(angle)
+    ser.write(angle.encode())
+    ser.write("\n".encode())
+
+
+def main():
+    
+    currentAngleX = 90
+    currentAngleY = 20
+    moveServoX(currentAngleX)
+    moveServoY(currentAngleY)
+    
+    
+    time.sleep(1)
+    for frame in camera.capture_continuous(rawCapture, format='bgr', use_video_port = True):
+
+    
+        center = image_analysis(frame.array).center
+
+
+        if center != None:
+            
+            angleX= abs((width/2)-center[1])/(width/2) * 4.3
+
+            angleY = abs((height/2)-center[0])/(height/2) * 4.3
+
+        
+            
+            
+            if(currentAngleX >=0 and currentAngleX <= 180):
+                if(center[1] < (width/2)):
+                    currentAngleX = currentAngleX - angleX
+                       
+                    moveServoX(currentAngleX)               
+                else:
+                    currentAngleX = currentAngleX + angleX
+                        
+                    moveServoX(currentAngleX)
+                
+            else:
+                currentAngleX = 90
+
+
+           
+            if(currentAngleY >=20 and currentAngleY <= 140):
+                if(center[0] > (height/2)):
+                    currentAngleY = currentAngleY - angleY
+                       
+                    moveServoY(currentAngleY)               
+                else:
+                    currentAngleY = currentAngleY + angleY
+                        
+                    moveServoY(currentAngleY)
+                
+            else:
+                currentAngleY = 20
+
+            
+        
+        rawCapture.seek(0)
+
+ 
+
+  
+main()
+#image_analysis.robotSee()
+        
+##angle = input("Enter angle: ")
+##while(angle != 999):
+##    angle = input("Enter angle: ")
+##    if angle == 'q':
+##        break
+##    
+##    moveServoY(angle)
