@@ -38,7 +38,12 @@ class image_analysis():
 
     
     def find(self):
+        """Return the mean pixel coordinates of the tennis ball (ex. y average = 20 and x average = 50)
         
+        Parameter:
+            self.res
+        Return Value: [y_avg, x_avg]
+        """
         npImg = np.asarray(self.res)
 
 
@@ -50,7 +55,12 @@ class image_analysis():
         
 
     def robotSee():
-        #shows what the robot sees
+    """ This function is used primarily to adjust or calibrate the filter pixel values. It will start a video feed where you can see what the robot sees.
+        Use this function like this:
+            image_analysis.robotSee()
+        And make sure you disable/comment-out the main function
+    """
+    
 
         for frame in camera.capture_continuous(rawCapture, format='bgr', use_video_port = True):
             image = frame.array
@@ -73,7 +83,13 @@ class image_analysis():
 
         
     def filter(self):
-
+        """ this function filters out all the pixel values that are not in the range, and returns a filtered image (res).
+        
+        Parameter: self.image
+        
+        Return value: res
+            
+        """
         #this function filters out all the pixel values that are not in the range, and returns a filtered image.
 
         
@@ -92,7 +108,8 @@ class image_analysis():
 
  
     def findRatio():
-
+        """ this function is used to figure out the ratio between degree of ration and displaced pixel value. This function's purpose is quite complicated to explain, I'll make an indepth video explanation. 
+        """
         camera.capture(rawCapture, format='bgr')
         image = rawCapture.array
         center1 = image_analysis.find(image)
